@@ -21,7 +21,21 @@ struct ContentView: View {
         Stock(ticker: "TSLA", shares: 5, price: 0, change: 0)
     ]
     // 👇 PASTE FUNCTION HERE
+    var totalValue: Double {
+        stocks.reduce(0) { $0 + ($1.price * $1.shares) }
+    }
     
+    var totalDailyChange: Double {
+        stocks.reduce(0) { total, stock in
+            let changeValue = (stock.change / 100) * stock.price * stock.shares
+            return total + changeValue
+        }
+    }
+    
+    var totalDailyChangePercent: Double {
+        if totalValue == 0 { return 0 }
+        return (totalDailyChange / totalValue) * 100
+    }
     func fetchPrice(for ticker: String, completion: @escaping (Double, Double) -> Void) {
         
         let apiKey = "0LEAMJFOD4I3U888"
@@ -58,41 +72,55 @@ struct ContentView: View {
     // 👇 UI starts here
     var body: some View {
         NavigationView {
-            List(stocks) { stock in
-                HStack {
-                    Text(stock.ticker)
-                        .frame(width: 60, alignment: .leading)
+            VStack {
+                // 👇 Daily totals
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Total Value: $\(totalValue, specifier: "%.2f")")
+                        .font(.title2)
+                        .bold()
                     
-                    Text("\(stock.shares, specifier: "%.1f")")
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing) {
-                        Text("$\(stock.price, specifier: "%.2f")")
-                        Text("$\(stock.change, specifier: "%.2f")")
-                            .foregroundColor(stock.change >= 0 ? .green : .red)
-                    }
-                    
-                    Text("$\(stock.price * stock.shares, specifier: "%.2f")")
-                        .frame(width: 100, alignment: .trailing)
+                    Text("Today: $\(totalDailyChange, specifier: "%.2f") (\(totalDailyChangePercent, specifier: "%.2f")%)")
+                        .foregroundColor(totalDailyChange >= 0 ? .green : .red)
                 }
-            }
-            .navigationTitle("Portfolio")
-            .onAppear {
-                for i in stocks.indices {
-                    let delay = Double(i) * 10.0   // 15 sec gap
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                        fetchPrice(for: stocks[i].ticker) { price, change in
-                            var updatedStock = stocks[i]
-                            updatedStock.price = price
-                            updatedStock.change = change
-                            stocks[i] = updatedStock
+                .padding()
+                
+                // 👇 list of stocks
+                List(stocks) { stock in
+                    HStack {
+                        Text(stock.ticker)
+                            .frame(width: 60, alignment: .leading)
+                        
+                        Text("\(stock.shares, specifier: "%.1f")")
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing) {
+                            Text("$\(stock.price, specifier: "%.2f")")
+                            Text("\(stock.change, specifier: "%.2f")%")
+                                .foregroundColor(stock.change >= 0 ? .green : .red)
+                        }
+                        
+                        Text("$\(stock.price * stock.shares, specifier: "%.2f")")
+                            .frame(width: 100, alignment: .trailing)
+                    }
+                }
+                .navigationTitle("Portfolio")
+                .onAppear {
+                    for i in stocks.indices {
+                        let delay = Double(i) * 5.0   // 5 sec gap
+                        
+                        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                            fetchPrice(for: stocks[i].ticker) { price, change in
+                                var updatedStock = stocks[i]
+                                updatedStock.price = price
+                                updatedStock.change = change
+                                stocks[i] = updatedStock
+                            }
                         }
                     }
                 }
             }
         }
+        
     }
-    
 }
