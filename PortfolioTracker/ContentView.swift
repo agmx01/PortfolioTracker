@@ -80,7 +80,7 @@ struct ContentView: View {
             .navigationTitle("Portfolio")
             .onAppear {
                 for i in stocks.indices {
-                    let delay = Double(i) * 2.0   // 15 sec gap
+                    let delay = Double(i) * 10.0   // 15 sec gap
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                         fetchPrice(for: stocks[i].ticker) { price, change in
