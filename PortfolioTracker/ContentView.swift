@@ -69,7 +69,7 @@ struct ContentView: View {
                     
                     VStack(alignment: .trailing) {
                         Text("$\(stock.price, specifier: "%.2f")")
-                        Text("\(stock.change, specifier: "%.2f")%")
+                        Text("$\(stock.change, specifier: "%.2f")")
                             .foregroundColor(stock.change >= 0 ? .green : .red)
                     }
                     
@@ -80,7 +80,7 @@ struct ContentView: View {
             .navigationTitle("Portfolio")
             .onAppear {
                 for i in stocks.indices {
-                    let delay = Double(i) * 15.0   // 15 sec gap
+                    let delay = Double(i) * 2.0   // 15 sec gap
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                         fetchPrice(for: stocks[i].ticker) { price, change in
